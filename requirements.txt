@@ -6,3 +6,4 @@ bs4
 fake_useragent
 requests_html
 jsonify
+openpyxl

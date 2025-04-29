@@ -1,6 +1,7 @@
 import aiohttp, csv, asyncio, json, csv
 import pandas as pd
 from bs4 import BeautifulSoup
+import os
 
 class MexicanStatesScraper:
     def __init__(self, mexican_states):
@@ -46,15 +47,20 @@ class MexicanStatesScraper:
             return await response.text()
 
     async def check_for_mexican_states(self, session, url_data, Title, Source, Date):
-        html_content = await self.fetch_page(session, url_data['Link'])
-        soup = BeautifulSoup(html_content, 'html.parser')
-
-        # Extract the info from the page
-        page_text = soup.get_text()
-
-        # Verify if the page contains some Mexican state
-        found_states = [state for state in self.mexican_states if state.lower() in page_text.lower()]
-        return found_states, Title, url_data['Link'], Source, Date
+        try:
+            async with session.get(url_data['Link'], timeout=30) as response:
+                if response.status == 200:
+                    html_content = await response.text()
+                    soup = BeautifulSoup(html_content, 'html.parser')
+                    page_text = soup.get_text()
+                    found_states = [state for state in self.mexican_states if state.lower() in page_text.lower()]
+                    return found_states, Title, url_data['Link'], Source, Date
+                else:
+                    print(f"Error accessing URL {url_data['Link']}: Status {response.status}")
+                    return [], Title, url_data['Link'], Source, Date
+        except Exception as e:
+            print(f"Error processing URL {url_data['Link']}: {str(e)}")
+            return [], Title, url_data['Link'], Source, Date
 
     async def process_url(self, session, Title, url_data):
         found_states, Title, url, Source, Date = await self.check_for_mexican_states(session, url_data, Title, url_data['Source'], url_data['Date'])
@@ -123,18 +129,45 @@ class MexicanStatesScraper:
         return states
     
 async def states():
-    # Load URLs from a JSON file
-    with open('archivos/links.json', 'r', encoding='UTF-8') as json_file:
-        url_data = json.load(json_file)
+    try:
+        # Verificar si el archivo existe
+        if not os.path.exists('archivos/links.json'):
+            print("File links.json not found")
+            return []
 
-    if not url_data:
-        return ("Error: URLs not found in JSON file.")
-        
-    mexican_states = ["Aguascalientes", "Baja California", "Baja California Sur", "Ciudad de México", "Campeche", "Chiapas", "Chihuahua", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", "Estado de México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"]
+        # Cargar URLs del archivo JSON
+        try:
+            with open('archivos/links.json', 'r', encoding='UTF-8') as json_file:
+                url_data = json.load(json_file)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return []
+        except Exception as e:
+            print(f"Error reading file: {e}")
+            return []
 
-    scraper = MexicanStatesScraper(mexican_states)
-    await scraper.process_urls(url_data)
-    scraper.save_to_dataframe()
-    result= scraper.to_map()
-    scraper.to_json('archivos/organized_URLs2.csv', 'archivos/dict_news.json')
-    return result
+        if not url_data:
+            print("No URLs found in JSON file")
+            return []
+            
+        mexican_states = ["Aguascalientes", "Baja California", "Baja California Sur", "Ciudad de México", "Campeche", "Chiapas", "Chihuahua", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", "Estado de México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", "Oaxaca", "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"]
+
+        scraper = MexicanStatesScraper(mexican_states)
+        try:
+            await scraper.process_urls(url_data)
+            scraper.save_to_dataframe()
+            result = scraper.to_map()
+            scraper.to_json('archivos/organized_URLs2.csv', 'archivos/dict_news.json')
+            
+            if not result:
+                print("No data points generated for map")
+                return [[21.284259, -99.417428, 1]]  # Retorna un punto por defecto en México
+                
+            return result
+        except Exception as e:
+            print(f"Error processing URLs: {e}")
+            return [[21.284259, -99.417428, 1]]  # Retorna un punto por defecto en México
+            
+    except Exception as e:
+        print(f"General error in states(): {e}")
+        return [[21.284259, -99.417428, 1]]  # Retorna un punto por defecto en México

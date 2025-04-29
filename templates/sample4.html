@@ -3,8 +3,13 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scraper</title> 
+    <title>Ingeniería de Datos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+
+    
+<!--Scraper-->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -161,6 +166,58 @@
 </head>
 
 <body>
+    <!-- Barra de navegación -->
+    <div class="nav-right">
+        <a class= "nav-right" href="#">BUSCAR</a>
+        <a class= "nav-right" href="#">BLOG</a>
+        <a  class= "nav-right" href="#">INICIAR SESIÓN</a>
+    </div>
+    <nav class="navbar">
+        <div class="container">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="REDMORA" class="logo">
+            <ul class="nav-links">
+                <li><a href="#">¿QUÉ ES LA REDMORA?</a></li>
+                <li><a href="#">ECOSISTEMA DIGITAL</a></li>
+                <li><a href="#" class="active">GRUPOS DE TRABAJO</a></li>
+                <li><a href="#">PROYECTOS</a></li>
+                <li><a href="#">PUBLICACIONES</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sección Hero -->
+    <header class="hero">
+        <div class="container">
+            <h1>Scraper de noticias y mapeo de datos</h1>
+        </div>
+    </header>
+
+    <!-- Ruta de navegación -->
+    <div class="breadcrumb">
+        <div class="container">
+            <p>Está aquí: <a href="#">Inicio</a> > <a href="#">Grupos de trabajo</a> > <a href="#">Transversales/Temáticos</a> > <a href="#">Ingeniería de datos y transferencia de los mismos</a> > Scraper de noticias y mapeo de datos</p>
+        </div>
+    </div>
+
+    <!--Informacion de la pagina web-->
+
+    <footer class="scraper-info">
+        <div class="container">
+            <div class="section">
+                <h2>¿Qué hace este Web Scraper?</h2>
+                <p>Este scraper recopila noticias relevantes de diversas fuentes, estructurando la información para su análisis. 
+                Permite seleccionar la cantidad de noticias deseadas y extrae detalles como título, fuente, fecha y contenido.</p>
+            </div>
+    
+            <div class="section">
+                <h2>Descarga de Datos de Cuencas</h2>
+                <p>Puedes descargar un archivo con datos sobre cuencas hidrográficas para su análisis.</p>
+            </div>
+    
+        </div>
+    </footer>    
+
+    <!-- Contenido -->
     <div id="container">
         <div id="top-panel">
             <div id="left-panel">
@@ -189,7 +246,7 @@
                 </div>
                 <div class="form-group">
                     <label for="domain">Dominio web:</label>
-                    <input type="text" id="domain" placeholder="Ejemplo: ejemplo-noticiero.com">
+                    <input type="text" id="domain" placeholder="Ejemplo: .mx, .gov">
                 </div>
                 <button type="button" class="btn" onclick="scrapeData()">Scrapear</button>
                 <button type="button" class="btn hidden" id="visualizeBtn" onclick="visualizeData()">Visualizar</button>
@@ -199,19 +256,22 @@
                 
                 <div class="loader" id="visualizeLoader"></div>
             </div>
-
+            
             <div id="right-panel">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Noticias</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    
-                    </tbody>
-                </table>
-            </div>
+                <div class="table-wrapper">
+                    <div class="scrollable-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Noticias</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>            
         </div>
 
         <div id="bottom-panel">
@@ -219,6 +279,7 @@
         </div>
     </div>
 
+    <!-- Visualize map and scraper -->
     <script>
 
         var map = L.map(
@@ -231,7 +292,7 @@
                 preferCanvas: false,
             }  
         );
-
+        
         var tilel = L.tileLayer(
             "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
             {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
@@ -262,19 +323,15 @@
             .then(data => {
                 const tbody = document.querySelector('table tbody');
                 tbody.innerHTML = '';
-                let count = 0
-
+                
                 Object.entries(data).forEach(([title, info]) => {
-                    if(count<10){
-                        const link = info.Link;
-                        const row = `
-                            <tr>
-                                <td><a href="${link}" target="_blank">${title}</a></td>
-                            </tr>
-                        `;
-                        tbody.insertAdjacentHTML('beforeend', row);
-                        count++
-                    }
+                    const link = info.Link;
+                    const row = `
+                        <tr>
+                            <td><a href="${link}" target="_blank">${title}</a></td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
                 });
             })
             .catch(error => {
@@ -377,10 +434,107 @@
             });
             
         }
-
-
-        
-
     </script>
+
+        <!-- HTML para la tabla -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cuencas</th>
+                    <th>Descripción</th>
+                    <th>Archivo</th>
+                    <th>Imagen</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Usumacinta</td>
+                    <td>Descarga de la base de datos de Usumacinta</td>
+                    <td><a href="/download/excel/1" class="download-btn">Descargar Excel</a></td>
+                    <td>
+                        <button class="btn btn-primary" data-image-id="image-usumacinta">Imagen</button>
+                        <div id="image-usumacinta" class="image-container" style="display: none; margin-top: 10px;">
+                            <img src="{{ url_for('static', filename='images/Usumacinta.png') }}" alt="Imagen desplegada" style="max-width: 300px;">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Papaolapan</td>
+                    <td>Descarga de la base de datos de Papaolapan</td>
+                    <td><a href="/download/excel/2" class="download-btn">Descargar Excel</a></td>
+                    <td>
+                        <button class="btn btn-primary" data-image-id="image-papaolapan">Imagen</button>
+                        <div id="image-papaolapan" class="image-container" style="display: none; margin-top: 10px;">
+                            <img src="{{ url_for('static', filename='images/Papaloapan.png') }}" alt="Imagen desplegada" style="max-width: 300px;">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>San Pedro</td>
+                    <td>Descarga de la base de datos de San Pedro</td>
+                    <td><a href="/download/excel/3" class="download-btn">Descargar Excel</a></td>
+                    <td>
+                        <button class="btn btn-primary" data-image-id="image-sanpedro">Imagen</button>
+                        <div id="image-sanpedro" class="image-container" style="display: none; margin-top: 10px;">
+                            <img src="{{ url_for('static', filename='images/San_pedro.png') }}" alt="Imagen desplegada" style="max-width: 300px;">
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener todos los botones de imagen
+            const imageButtons = document.querySelectorAll('button[data-image-id]');
+            
+            // Agregar evento a cada botón
+            imageButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Obtener el ID del contenedor de imagen
+                    const imageId = this.getAttribute('data-image-id');
+                    const imageContainer = document.getElementById(imageId);
+                    
+                    // Alternar la visibilidad de la imagen
+                    if (imageContainer.style.display === 'none' || imageContainer.style.display === '') {
+                        // Ocultar todas las imágenes antes de mostrar la seleccionada
+                        document.querySelectorAll('.image-container').forEach(container => {
+                            container.style.display = 'none';
+                        });
+                        imageContainer.style.display = 'block';
+                    } else {
+                        imageContainer.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+
+
+    <div class="integrantes">
+        <h2>INTEGRANTES</h2>
+        <div class="tarjetas">
+            <div class="tarjeta">
+                <img src="{{ url_for('static', filename='ss/iris-neri-flores.jpg') }}" alt="Miembro 1">
+                <p>Iris neri flores</p>
+                <button class="coordinador">Coordinadora</button>
+            </div>
+            <div class="tarjeta">
+                <img src="{{ url_for('static', filename='ss/oscar-martinez.jpg') }}" class="team-img" alt="José Tuxpan Vargas">
+                <p>Oscar martinez</p>
+                <button class="coordinador">Scrapper</button>
+            </div>
+            <div class="tarjeta">
+                <img src="{{ url_for('static', filename='ss/moises-carrillo.jpg') }}" alt="Carlos Martínez">
+                <p>Moises carrillo</p>
+                <button class="colaborador">Web developer</button>
+            </div>
+        </div>
+    </div>
+
+  
+<script src="{{ url_for('static', filename='js/maps.js') }}"></script>
 </body>
 </html>
